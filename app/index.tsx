@@ -1,23 +1,23 @@
-import { Box } from "@/components/ui/box";
-import { Button, ButtonSpinner, ButtonText } from "@/components/ui/button";
+import { router } from "expo-router";
 import { Text, View } from "react-native";
+import { useEffect } from "react";
+import { Image } from "expo-image";
 
 export default function Index() {
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      router.replace("/(auth)/login");
+    }, 4000);
+
+    return () => clearTimeout(timeout); // limpiar en caso de desmontar antes
+  }, []);
+
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-      <Button className="p-3">
-      <ButtonSpinner color="gray" />
-      <ButtonText className="font-medium text-sm ml-2">
-       enviando solicitud 
-      </ButtonText>
-    </Button>
+    <View >
+      <View >
+        <Text>Página de Splash</Text>
+        {/* Podés agregar tu logo o animación */}
+      </View>
     </View>
   );
 }
