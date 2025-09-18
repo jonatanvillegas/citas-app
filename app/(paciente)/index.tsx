@@ -1,4 +1,4 @@
-import Citas from "@/app/(paciente)/_components/Citas";
+import Citas from "@/app/(components)/paciente/Citas";
 import React from "react";
 import { ScrollView, Text, View } from "react-native";
 import { Cita, citas } from "../../data/cita";

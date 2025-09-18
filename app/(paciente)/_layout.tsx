@@ -1,8 +1,8 @@
-import { Tabs } from "expo-router";
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
 import "@/global.css";
-import Header from "./_components/Header";
 import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import Header from "../(components)/paciente/Header";
 
 export default function PacienteLayout() {
   return (
