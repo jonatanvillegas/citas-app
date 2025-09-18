@@ -1,7 +1,7 @@
-import { ScrollView, Text, View } from "react-native";
+import Citas from "@/app/(paciente)/_components/Citas";
 import React from "react";
-import Citas from "./Citas";
-import { citas, Cita } from "../../data/cita";
+import { ScrollView, Text, View } from "react-native";
+import { Cita, citas } from "../../data/cita";
 
 export default function Index() {
   // Paleta de colores
