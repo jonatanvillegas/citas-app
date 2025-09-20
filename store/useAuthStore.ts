@@ -6,6 +6,7 @@ import { db,auth } from '@/Config/firebaseConfig';
 type Usuario = {
   id: string;
   nombre: string;
+  cedula: string;
   correo: string;
   rol: "doctor" | "secretaria" | "paciente";
   creadoEn: Date;
@@ -15,7 +16,7 @@ type AuthState = {
   usuario: Usuario | null;
   loading: boolean;
   error: string | null;
-  registrar: (nombre: string, correo: string, password: string) => Promise<void>;
+  registrar: (nombre: string,cedula: string, correo: string, password: string) => Promise<void>;
   login: (correo: string, contraseña: string) => Promise<void>;
   logout: () => Promise<void>;
   inicializarSesion: () => void;
@@ -26,7 +27,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   loading: false,
   error: null,
 
-  registrar: async (nombre, correo, password) => {
+  registrar: async (nombre, correo, password,cedula) => {
     try {
       set({ loading: true, error: null });
 
@@ -38,6 +39,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const nuevoUsuario: Usuario = {
         id: user.uid,
         nombre,
+        cedula,
         correo,
         rol: "paciente", // Por defecto
         creadoEn: new Date(),
