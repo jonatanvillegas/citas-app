@@ -1,50 +1,68 @@
-# Welcome to your Expo app 👋
+📅 Citas App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicación móvil desarrollada con Expo para la gestión de citas, utilizando Firebase como backend (autenticación, base de datos y almacenamiento) y Gluestack UI para el diseño de interfaces modernas y responsivas.
 
-## Get started
+🚀 Tecnologías utilizadas
 
-1. Install dependencies
+Expo – Framework para desarrollo de apps con React Native.
 
-   ```bash
-   npm install
-   ```
+Firebase – Backend as a Service:
 
-2. Start the app
+🔑 Autenticación de usuarios
 
-   ```bash
-   npx expo start
-   ```
+☁️ Firestore (base de datos en tiempo real)
 
-In the output, you'll find options to open the app in a
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Gluestack UI – Biblioteca de componentes para construir interfaces con diseño consistente.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+React Navigation – Manejo de navegación en la aplicación.
 
-## Get a fresh project
+Zustand Gestión de estado simple y escalable.
 
-When you're ready, run:
+📂 Estructura del proyecto
+citas-app/
+│── assets/             # Recursos estáticos (imágenes, íconos, fuentes)
+│── src/
+│   ├── components/     # Componentes reutilizables
+│   ├── screens/        # Vistas principales (Login, Citas, Perfil, etc.)
+│   ├── navigation/     # Configuración de navegación
+│   ├── services/       # Conexión con Firebase
+│   ├── store/          # Estado global (ej. Zustand)
+│   └── utils/          # Funciones auxiliares
+│── App.js              # Punto de entrada de la app
+│── package.json
+│── README.md
 
-```bash
-npm run reset-project
-```
+🔑 Funcionalidades principales
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Registro e inicio de sesión con Firebase Auth.
 
-## Learn more
+Creación, edición y eliminación de citas.
 
-To learn more about developing your project with Expo, look at the following resources:
+Notificaciones locales para recordar citas.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Vista de perfil del usuario.
 
-## Join the community
+Interfaz amigable gracias a Gluestack UI.
 
-Join our community of developers creating universal apps.
+⚙️ Instalación y ejecución
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Clona el repositorio:
+
+git clone https://github.com/jonatanvillegas/citas-app
+cd citas-app
+
+
+Instala dependencias:
+
+npm install
+# o
+yarn install
+
+
+Inicia la app en desarrollo:
+
+npx expo start
+
+
+Escanea el QR con la app de Expo Go o ejecútala en un emulador.
