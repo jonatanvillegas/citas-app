@@ -1,7 +1,33 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { addDoc, collection, getDocs, orderBy, query, where } from "firebase/firestore";
+import { db } from "@/Config/firebaseConfig";
 import { ScrollView, Text, View, TextInput, TouchableOpacity } from "react-native";
 import { Picker } from "@react-native-picker/picker"; // 👈 instalar: expo install @react-native-picker/picker
 import { Calendar } from "react-native-calendars";
+
+type Usuario = {
+  id: string;
+  nombre: string;
+  cedula: string;
+  correo: string;
+  rol: "doctor" | "secretaria" | "paciente";
+  creadoEn: Date;
+};
+
+type Cita = {
+  id?: string;
+  pacienteId: string;
+  pacienteNombre: string;
+  doctorId: string;
+  doctorNombre: string;
+  hospitalId: string;
+  puestoId: string;
+  area: string;
+  fecha: string;
+  hora: string;
+  creadoEn: Date;
+};
+
 
 export default function AgendarCita() {
   const [step, setStep] = useState(1);
@@ -12,9 +38,154 @@ export default function AgendarCita() {
   const [area, setArea] = useState("");
   const [doctor, setDoctor] = useState("");
 
+  const [pacientesEncontrados, setPacientesEncontrados] = useState<Usuario[]>([]);
+  const [pacienteSeleccionado, setPacienteSeleccionado] = useState<Usuario | null>(null);
+  const [buscando, setBuscando] = useState(false);
+
+
+  const [hospitales, setHospitales] = useState<any[]>([]);
+  const [puestos, setPuestos] = useState<any[]>([]);
+  const [areas, setAreas] = useState<any[]>([]);
+  const [doctores, setDoctores] = useState<any[]>([]);
+  const [horasDisponibles, setHorasDisponibles] = useState<string[]>([]);
+
+
   const [fecha, setFecha] = useState("");
   const [hora, setHora] = useState("");
   const [paciente, setPaciente] = useState("");
+
+  const buscarPaciente = async () => {
+    if (!paciente) return;
+
+    setBuscando(true);
+    try {
+      const q = query(
+        collection(db, "usuarios"),
+        where("rol", "==", "paciente"),
+        where("cedula", "==", paciente)
+      );
+
+      const snapshot = await getDocs(q);
+      const resultados: Usuario[] = [];
+      snapshot.forEach(doc => resultados.push(doc.data() as Usuario));
+
+      setPacientesEncontrados(resultados);
+    } catch (error: any) {
+      console.error("Error buscando paciente:", error.message);
+    } finally {
+      setBuscando(false);
+    }
+  };
+
+  const guardarCita = async () => {
+    if (!pacienteSeleccionado || !doctor || !fecha || !hora) {
+      alert("Faltan datos para guardar la cita.");
+      return;
+    }
+
+    try {
+      const doctorSeleccionado = doctores.find(d => d.id === doctor);
+
+      const nuevaCita: Cita = {
+        pacienteId: pacienteSeleccionado.id,
+        pacienteNombre: pacienteSeleccionado.nombre,
+        doctorId: doctorSeleccionado?.id || "",
+        doctorNombre: doctorSeleccionado?.nombre || "",
+        hospitalId: hospital,
+        puestoId: puesto,
+        area,
+        fecha,
+        hora,
+        creadoEn: new Date(),
+      };
+
+      await addDoc(collection(db, "citas"), nuevaCita);
+
+      alert("✅ Cita guardada con éxito");
+      setStep(1); // volver al inicio
+      // opcional: limpiar estados
+      setPaciente("");
+      setPacienteSeleccionado(null);
+      setHospital("");
+      setPuesto("");
+      setArea("");
+      setDoctor("");
+      setFecha("");
+      setHora("");
+    } catch (error: any) {
+      console.error("Error guardando cita:", error.message);
+      alert("❌ Hubo un error al guardar la cita");
+    }
+  };
+
+  const cargarDatos = async () => {
+    try {
+      // Centros de salud (hospitales y puestos)
+      const centrosSnapshot = await getDocs(collection(db, "centrosSalud"));
+      const hospitalesData: any[] = [];
+      const puestosData: any[] = [];
+
+      centrosSnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.tipo === "hospital") hospitalesData.push({ id: doc.id, nombre: data.nombre });
+        if (data.tipo === "puesto_de_salud") puestosData.push({ id: doc.id, nombre: data.nombre });
+      });
+
+      setHospitales(hospitalesData);
+      setPuestos(puestosData);
+
+      // Áreas: tomar de doctores únicos
+      const doctoresSnapshot = await getDocs(collection(db, "doctores"));
+      const areasSet = new Set<string>();
+      const doctoresData: any[] = [];
+
+      doctoresSnapshot.forEach((doc) => {
+        const data = doc.data();
+        areasSet.add(data.especialidad);
+        doctoresData.push({ id: doc.id, nombre: data.nombre, especialidad: data.especialidad, centroSaludId: data.centroSaludId });
+      });
+
+      setAreas(Array.from(areasSet));
+      setDoctores(doctoresData);
+
+    } catch (error: any) {
+      console.error("Error cargando datos:", error.message);
+    }
+  };
+
+  const cargarHorarios = async (doctorId: string) => {
+    try {
+      if (!doctorId) {
+        setHorasDisponibles([]);
+        return;
+      }
+
+      const q = query(
+        collection(db, "horarios"),
+        where("doctorId", "==", doctorId)
+      );
+
+      const snapshot = await getDocs(q);
+      const horas: string[] = [];
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.disponible) {
+          horas.push(data.horaInicio);
+        }
+      });
+
+      // Ordenar en el cliente
+      horas.sort((a, b) => a.localeCompare(b));
+
+      setHorasDisponibles(horas);
+
+
+    } catch (error: any) {
+      console.error("Error cargando horarios:", error.message);
+      setHorasDisponibles([]);
+    }
+  };
 
   const COLORS = {
     primary: "#1976D2",
@@ -32,13 +203,14 @@ export default function AgendarCita() {
 
   const nextStep = () => setStep(step + 1);
 
-  // Datos de prueba
-  const hospitales = ["Hospital Central", "Hospital Occidental", "Hospital Infantil"];
-  const puestos = ["Puesto Norte", "Puesto Sur", "Puesto Este"];
-  const areas = ["Pediatría", "Cardiología", "Medicina General", "Ginecología"];
-  const doctores = ["Dr. Juan Pérez", "Dra. Ana López", "Dr. Carlos García"];
-  const horasDisponibles = ["08:00", "09:30", "11:00", "14:00", "15:30"];
+  useEffect(() => {
+    cargarDatos();
+  }, []);
 
+  useEffect(() => {
+    console.log("Doctor cambiado:", doctor);
+    cargarHorarios(doctor);
+  }, [doctor]);
   return (
     <ScrollView style={{ flex: 1, backgroundColor: COLORS.background }}>
       {/* Encabezado */}
@@ -73,6 +245,7 @@ export default function AgendarCita() {
             <Text style={{ fontSize: 18, fontWeight: "600", color: COLORS.textPrimary }}>
               1. Buscar paciente por cédula
             </Text>
+
             <TextInput
               placeholder="Ingrese cédula..."
               placeholderTextColor={COLORS.placeholderText}
@@ -88,19 +261,55 @@ export default function AgendarCita() {
                 borderColor: COLORS.border,
               }}
             />
+
             <TouchableOpacity
-              onPress={nextStep}
+              onPress={buscarPaciente}
               style={{
                 backgroundColor: COLORS.primary,
+                padding: 12,
+                borderRadius: 12,
+                alignItems: "center",
+                marginBottom: 16
+              }}
+            >
+              <Text style={{ color: COLORS.white, fontWeight: "600" }}>Buscar</Text>
+            </TouchableOpacity>
+
+            {/* Mostrar resultados */}
+            {buscando && <Text>Buscando...</Text>}
+            {pacientesEncontrados.map(p => (
+              <TouchableOpacity
+                key={p.id}
+                onPress={() => setPacienteSeleccionado(p)}
+                style={{
+                  padding: 12,
+                  backgroundColor: pacienteSeleccionado?.id === p.id ? COLORS.primary : COLORS.inputBackground,
+                  borderRadius: 12,
+                  marginBottom: 8
+                }}
+              >
+                <Text style={{ color: pacienteSeleccionado?.id === p.id ? COLORS.white : COLORS.textPrimary }}>
+                  {p.nombre} - {p.cedula}
+                </Text>
+              </TouchableOpacity>
+            ))}
+
+            <TouchableOpacity
+              onPress={nextStep}
+              disabled={!pacienteSeleccionado} // ✅ solo habilitado si hay paciente seleccionado
+              style={{
+                backgroundColor: pacienteSeleccionado ? COLORS.primary : COLORS.border,
                 padding: 14,
                 borderRadius: 12,
                 alignItems: "center",
+                marginTop: 10
               }}
             >
               <Text style={{ color: COLORS.white, fontWeight: "600" }}>Siguiente</Text>
             </TouchableOpacity>
           </View>
         )}
+
 
         {/* Paso 2 */}
         {step === 2 && (
@@ -117,8 +326,8 @@ export default function AgendarCita() {
               style={{ backgroundColor: COLORS.inputBackground, marginVertical: 8 }}
             >
               <Picker.Item label="Seleccione un hospital" value="" />
-              {hospitales.map((h, i) => (
-                <Picker.Item key={i} label={h} value={h} />
+              {hospitales.map((h) => (
+                <Picker.Item key={h.id} label={h.nombre} value={h.id} />
               ))}
             </Picker>
 
@@ -131,7 +340,7 @@ export default function AgendarCita() {
             >
               <Picker.Item label="Seleccione un puesto" value="" />
               {puestos.map((p, i) => (
-                <Picker.Item key={i} label={p} value={p} />
+                <Picker.Item key={p.id} label={p.nombre} value={p.id} />
               ))}
             </Picker>
 
@@ -156,9 +365,11 @@ export default function AgendarCita() {
               style={{ backgroundColor: COLORS.inputBackground, marginVertical: 8 }}
             >
               <Picker.Item label="Seleccione un doctor" value="" />
-              {doctores.map((d, i) => (
-                <Picker.Item key={i} label={d} value={d} />
-              ))}
+              {doctores
+                .filter((d) => d.centroSaludId === hospital && d.especialidad === area)
+                .map((d) => (
+                  <Picker.Item key={d.id} label={d.nombre} value={d.id} />
+                ))}
             </Picker>
 
             <TouchableOpacity
@@ -193,7 +404,7 @@ export default function AgendarCita() {
               minDate={new Date().toISOString().split("T")[0]}
               // asegurar que no se congele cuando navegas entre meses
               onDayPress={day => {
-                  setFecha(day.dateString);
+                setFecha(day.dateString);
               }}
               markedDates={
                 fecha
@@ -308,6 +519,7 @@ export default function AgendarCita() {
             <View style={{ flexDirection: "row", gap: 16 }}>
               {/* Botón Guardar */}
               <TouchableOpacity
+                onPress={guardarCita} // ✅ aquí
                 style={{
                   backgroundColor: COLORS.primary,
                   padding: 14,
@@ -319,6 +531,7 @@ export default function AgendarCita() {
               >
                 <Text style={{ color: COLORS.white, fontWeight: "600" }}>Guardar</Text>
               </TouchableOpacity>
+
 
               {/* Botón Cancelar */}
               <TouchableOpacity
