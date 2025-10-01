@@ -23,8 +23,8 @@ export default function Turno() {
   const [numeroTurno] = useState<number | null>(null);
 
   // Para simular pantalla "Turno asignado"
-  //const [tieneTurno] = useState(true);
-  //const [numeroTurno] = useState<number>(15);
+  // const [tieneTurno] = useState(true);
+  // const [numeroTurno] = useState<number>(15);
 
   const totalTurnos = 50;
 

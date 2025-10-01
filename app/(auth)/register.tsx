@@ -81,7 +81,7 @@ export default function SingupScreen() {
                 <View style={styles.card}>
                     {/* cabecera */}
                     <View style={styles.header}>
-                        <Text style={styles.title}>Paciente App</Text>
+                        <Text style={styles.title}>VitalX</Text>
                         <Text style={styles.subtitle}>Gestion de citas</Text>
                     </View>
                     < View style={styles.formContainer}>
